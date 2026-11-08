@@ -62,17 +62,88 @@ const layout = {
     hovermode: "closest"
 };
 
-function emptyChart(id, title, yTitle) {
-    Plotly.newPlot(id, [], {
-        ...layout,
-        title: title,
-        yaxis: {title: yTitle}
-    }, {responsive: true, displaylogo: false});
+
+async function loadVCOData() {
+    const response = await fetch('./vco_data.csv');
+
+    if (!response.ok) {
+        throw new Error('Could not load VCO data');
+    }
+
+    const csv = await response.text();
+    const rows = csv.trim().split(/\r?\n/);
+
+    const data = rows.slice(1).map(row => {
+        const values = row.split(',').map(Number);
+
+        return {
+            t: values[0],
+            vin: values[1],
+            fi: values[2],
+            vout: values[3]
+        };
+    });
+
+    const time = data.map(d => d.t);
+
+    const config = {
+        responsive: true,
+        displaylogo: false,
+        toImageButtonOptions: {
+            format: 'png',
+            filename: 'VCO_chart',
+            scale: 2
+        }
+    };
+
+    const commonLayout = {
+        autosize: true,
+        margin: { l: 65, r: 25, t: 35, b: 55 },
+        xaxis: { title: 'Time (s)' },
+        hovermode: 'closest'
+    };
+
+    Plotly.react('chart1', [{
+        x: time,
+        y: data.map(d => d.vin),
+        type: 'scatter',
+        mode: 'lines',
+        name: 'Input'
+    }], {
+        ...commonLayout,
+        yaxis: { title: 'Voltage (V)' }
+    }, config);
+
+    Plotly.react('chart2', [{
+        x: time,
+        y: data.map(d => d.fi),
+        type: 'scatter',
+        mode: 'lines',
+        name: 'Frequency'
+    }], {
+        ...commonLayout,
+        yaxis: { title: 'Frequency (Hz)' }
+    }, config);
+
+    Plotly.react('chart3', [{
+        x: time,
+        y: data.map(d => d.vout),
+        type: 'scatter',
+        mode: 'lines',
+        name: 'VCO Output'
+    }], {
+        ...commonLayout,
+        yaxis: { title: 'Amplitude' }
+    }, config);
 }
 
-emptyChart("chart1", "Input Signal", "Voltage (V)");
-emptyChart("chart2", "Instantaneous Frequency", "Frequency (Hz)");
-emptyChart("chart3", "VCO Output", "Amplitude");
+loadVCOData().catch(error => {
+    document.querySelector('.container').insertAdjacentHTML(
+        'beforeend',
+        '<p>Data loading failed. Check the CSV file.</p>'
+    );
+    console.error(error);
+});
 
 </script>
 
