@@ -1,0 +1,159 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PLL Simulation</title>
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background: #f3f5f8;
+    margin: 0;
+    padding: 25px;
+    color: #202938;
+}
+.container {
+    max-width: 1100px;
+    margin: auto;
+}
+.chart {
+    background: white;
+    padding: 12px;
+    margin: 22px 0;
+    border-radius: 12px;
+}
+a { color: #1769aa; }
+</style>
+</head>
+<body>
+<div class="container">
+
+<a href="../">← Back to Home</a>
+
+<h1>Phase Locked Loop (PLL)</h1>
+<p>Interactive MATLAB simulation of a Phase Locked Loop.</p>
+
+<div class="chart">
+    <h3>Original Message Signal</h3>
+    <div id="chart1"></div>
+</div>
+
+<div class="chart">
+    <h3>FM Input Signal</h3>
+    <div id="chart2"></div>
+</div>
+
+<div class="chart">
+    <h3>Input and VCO Instantaneous Frequencies</h3>
+    <div id="chart3"></div>
+</div>
+
+<div class="chart">
+    <h3>Original and Recovered Message</h3>
+    <div id="chart4"></div>
+</div>
+
+<script>
+async function loadData() {
+    const response = await fetch('./pll_data.csv');
+
+    if (!response.ok) {
+        throw new Error('Could not load PLL data');
+    }
+
+    const csv = await response.text();
+    const rows = csv.trim().split(/\r?\n/);
+
+    const data = rows.slice(1).map(row => {
+        const v = row.split(',').map(Number);
+
+        return {
+            t: v[0],
+            m: v[1],
+            rx: v[2],
+            fi: v[3],
+            fvco: v[4],
+            control: v[5],
+            recovered: v[6]
+        };
+    });
+
+    const t = data.map(d => d.t);
+
+    const config = {
+        responsive: true,
+        displaylogo: false,
+        toImageButtonOptions: {
+            format: 'png',
+            filename: 'PLL_chart',
+            scale: 2
+        }
+    };
+
+    const common = {
+        autosize: true,
+        margin: {l: 65, r: 25, t: 35, b: 55},
+        xaxis: {title: 'Time (s)'},
+        hovermode: 'closest'
+    };
+
+    function draw(id, traces, yTitle) {
+        Plotly.react(id, traces, {
+            ...common,
+            yaxis: {title: yTitle}
+        }, config);
+    }
+
+    draw('chart1', [{
+        x: t, y: data.map(d => d.m),
+        type: 'scatter', mode: 'lines',
+        name: 'Original Message'
+    }], 'Amplitude');
+
+    draw('chart2', [{
+        x: t, y: data.map(d => d.rx),
+        type: 'scatter', mode: 'lines',
+        name: 'FM Signal'
+    }], 'Amplitude');
+
+    draw('chart3', [
+        {
+            x: t, y: data.map(d => d.fi),
+            type: 'scatter', mode: 'lines',
+            name: 'Input Frequency'
+        },
+        {
+            x: t, y: data.map(d => d.fvco),
+            type: 'scatter', mode: 'lines',
+            name: 'VCO Frequency'
+        }
+    ], 'Frequency (Hz)');
+
+    draw('chart4', [
+        {
+            x: t, y: data.map(d => d.m),
+            type: 'scatter', mode: 'lines',
+            name: 'Original Message'
+        },
+        {
+            x: t, y: data.map(d => d.recovered),
+            type: 'scatter', mode: 'lines',
+            name: 'Recovered Message'
+        }
+    ], 'Amplitude');
+}
+
+loadData().catch(error => {
+    document.querySelector('.container').insertAdjacentHTML(
+        'beforeend',
+        '<p>Data loading failed. Check the CSV file.</p>'
+    );
+    console.error(error);
+});
+</script>
+
+</div>
+</body>
+</html>
