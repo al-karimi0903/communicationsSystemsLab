@@ -1,0 +1,81 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VCO Simulation</title>
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background: #f3f5f8;
+    margin: 0;
+    padding: 25px;
+    color: #202938;
+}
+.container {
+    max-width: 1100px;
+    margin: auto;
+}
+.chart {
+    background: white;
+    padding: 12px;
+    margin: 22px 0;
+    border-radius: 12px;
+}
+a { color: #1769aa; }
+</style>
+</head>
+<body>
+<div class="container">
+
+<a href="../">← Back to Home</a>
+
+<h1>Voltage Controlled Oscillator (VCO)</h1>
+
+<p>
+Interactive MATLAB simulation of a Voltage Controlled Oscillator.
+</p>
+
+<div class="chart">
+    <h3>Input Modulating Signal</h3>
+    <div id="chart1"></div>
+</div>
+
+<div class="chart">
+    <h3>Instantaneous Frequency</h3>
+    <div id="chart2"></div>
+</div>
+
+<div class="chart">
+    <h3>VCO Output Signal</h3>
+    <div id="chart3"></div>
+</div>
+
+<script>
+const layout = {
+    autosize: true,
+    margin: {l: 60, r: 25, t: 35, b: 55},
+    xaxis: {title: "Time (s)"},
+    yaxis: {title: "Amplitude"},
+    hovermode: "closest"
+};
+
+function emptyChart(id, title, yTitle) {
+    Plotly.newPlot(id, [], {
+        ...layout,
+        title: title,
+        yaxis: {title: yTitle}
+    }, {responsive: true, displaylogo: false});
+}
+
+emptyChart("chart1", "Input Signal", "Voltage (V)");
+emptyChart("chart2", "Instantaneous Frequency", "Frequency (Hz)");
+emptyChart("chart3", "VCO Output", "Amplitude");
+
+</script>
+
+</div>
+</body>
+</html>
